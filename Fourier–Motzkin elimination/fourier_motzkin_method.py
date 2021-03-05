@@ -1,16 +1,5 @@
 import numpy as np
-def printMatrix(A):
-    for row in A:
-        str = ""
-        for elem in row:
-            str += elem.__str__() + " "
-        print(str)
 
-def printVector(b):
-    str = ""
-    for elem in b:
-        str += elem.__str__() + " "
-    print(str)
 '''
     Funkcija koja kreira string reprezentaciju intervala
 '''
@@ -35,7 +24,7 @@ def form_interval(left, right):
 
 def find_interval(A, b):
 
-    m = len(b)
+    m = len(b) # Broj nejednakosti
     left_bound = float('-inf')
     right_bound = float('inf')
 
@@ -80,11 +69,14 @@ def eliminate(A, b):
     n = len(A) # Broj nejednakosti
     m = len(A[0]) # Broj promenljivih
 
+    # Eliminaciju pocinjemo sa desnog kraja
+    # Stoga intervale odredjujemo prvo za
+    # Najlevlju promenljivu
     elim_index = m-1
 
-    I = [] # Vektor indeksa onih nejednakosti koje ...
-    J = [] # Vektor indeksa onih nejednakosti koje ...
-    K = [] # Vektor indeksa onih nejednakosti koje ...
+    I = [] # Vektor indeksa onih nejednakosti kojima je koeficijent na poziciji elim_indeks > 0
+    J = [] # Vektor indeksa onih nejednakosti kojima je koeficijent na poziciji elim_indeks < 0
+    K = [] # Vektor indeksa onih nejednakosti kojima je koeficijent na poziciji elim_indeks = 0
 
     for i in range(0, n):
         if(A[i][elim_index] > 0):
@@ -101,6 +93,7 @@ def eliminate(A, b):
     new_A = []
     new_b = []
 
+    # Vrsimo kombinovanje nejedankosti iz skupova I i J
     for i in range(0, len(I)):
         for j in range(0, len(J)):
             new_A.append([])
@@ -113,6 +106,7 @@ def eliminate(A, b):
 
             new_b.append(b[I[i]] / A[I[i]][elim_index] - b[J[j]] / A[J[j]][elim_index])
 
+    # Nejednakosti iz skupa K prepisujemo
     for k in range(0, len(K)):
         new_A.append([])
         x = len(new_A)
@@ -122,6 +116,9 @@ def eliminate(A, b):
             new_A[x-1].append(A[K[k]][p])
         new_b.append(b[K[k]])
 
+    # Ukoliko ima 2 ili vise promenljivi
+    # Potrebno je nastaviti sa eliminacijom
+    # Inace prelazimo na trazenje intervala
     if m > 2:
         return eliminate(new_A, new_b)
     else:
@@ -132,23 +129,19 @@ def eliminate(A, b):
 
 #left, right = eliminate(A, b)
 
+'''
+    Funkcija koja proverava da li data tacka pripada skupu resenja
+'''
 def is_point_in(A, b, point):
 
-    n = len(A[0])
-    m = len(A)
+    if ((A @ point >= b).all):
+        print("Data tacka pripada skupu resenja!")
+    else:
+        print("Data tacka ne pripada skupu resenja!")
 
-    for i in range(0, m):
-        for j in range(0, n):
-            b[i] -= A[i][j] * point[j]
-
-        if(b[i] > 0):
-            print("Data tacka ne pripada skupu resenja!")
-            return
-
-    print("Data tacka pripada skupu resenja")
-
-# A = [[7, 2, -2], [-1, -1, -1], [-2, 3, 1], [5, -1, 1]]
-# b = [4, -4, 1, -2]
+#TEST PRIMERI
+A = [[7, 2, -2], [-1, -1, -1], [-2, 3, 1], [5, -1, 1]]
+b = [4, -4, 1, -2]
 #point = [1, 4, -2] # DA
 point = [1, 2, -3] # DA
 #point = [1, 1, 1] # DA
@@ -157,15 +150,23 @@ point = [1, 2, -3] # DA
 #point = [2, 2, 2] # NE
 #point = [2, 1, 2] # NE
 #point = [0, 0, 2] # NE
-#is_point_in(A, b, point)
+is_point_in(np.array(A), np.array(b), np.array(point))
+
+'''
+    Funkcija koja uvrstava vrednost za promenljivu u sistem
+    i vraca nam novonastali sistem
+'''
 
 def reduce(A, b, val):
 
-    n = len(A)
-    m = len(A[0])
+    n = len(A) # Broj nejednakosti
+    m = len(A[0]) # Broj promenljivih
 
     new_A = []
     new_b = []
+
+    # a1x1 + a2x2 >= b
+    # a2x2 >= b - a1x1
     for i in range(0, n):
 
         #print(f"b[{i}] = {b[i]}")
@@ -173,8 +174,10 @@ def reduce(A, b, val):
         #print(res)
         new_b.append(res)
 
-    #printVector(new_b)
+    #print(new_b)
 
+    # Uvrstili smo prvu promenljivu
+    # Koeficijente uz ostale prepisujemo
     for i in range(0, n):
         row = []
         for j in range(0, m):
@@ -188,6 +191,10 @@ def reduce(A, b, val):
 #b = [4, -4, 1, -2]
 #transform(A, b, 0)
 
+'''
+    Funkcija koja uvrstava izrazenu funkciju u sistem
+'''
+
 def incorporate_f(A, b, c):
 
     n = len(b) # Broj nejednacina
@@ -195,6 +202,10 @@ def incorporate_f(A, b, c):
 
     if(n == 0):
         return
+
+    #Ako imamo f = x + y i nejednakostx + 2y >= 3
+    #Izrazimo x = f - y i zamenimo u drugoj nejednakosti
+    #I dobijamo f + y >= 3
 
     for i in range(0, n):
 
@@ -239,19 +250,21 @@ def fourier_motzkin_elimination():
     m = int(input("Unesite broj promenljivih: "))
 
     A = load_matrix(n, m)
-    #printMatrix(A)
+    #print(A)
 
     b = load_vector(n)
-    #printVector(b)
+    #print(b)
 
+    # U petlji konstantno odredjujemo interval za najlevlju promenljivu
+    # Eliminisemo je i ponavljamo postupak za preostale promenljive
+    # Petlja staje kada dodjemo do sistema nejednacina sa jednom promenljivom
     while True:
 
         proms = len(A[0])
         # print("Matrica:")
-        # printMatrix(A)
+        # print(A)
         # print("Vektor:")
-        # printVector(b)
-        # print("============================================")
+        # print(b)
 
         if proms > 1:
             eliminate(A, b)
@@ -267,23 +280,27 @@ def fourier_motzkin_elimination():
 #fourier_motzkin_elimination()
 
 def linear_programming_problem():
-    n = int(input("Unesite broj nejednacina: "))
-    m = int(input("Unesite broj promenljivih: "))
+    # n = int(input("Unesite broj nejednacina: "))
+    # m = int(input("Unesite broj promenljivih: "))
+
+    # A = load_matrix(n, m)
+    # print(A)
+    # b = load_vector(n)
+    # print(b)
+    # c = load_vector(m)
+    # print(c)
 
     # c = [7.75, 8.5]
     # A = [[1.5, 2], [2.25, 1.5]]
     # b = [120, 135]
+    # n = 2
+    # m = 2
 
     c = [5, 7]
     A = [[3, 4], [2, 3]]
     b = [650, 500]
-
-    #A = load_matrix(n, m)
-    # printMatrix(A)
-    #b = load_vector(n)
-    # printVector(b)
-    #c = load_vector(m)
-    # printVector(c)
+    n = 2
+    m = 2
 
     # Transformisemo sistem u oblik
     # a00x1 + a01x2 >= b1
@@ -301,13 +318,15 @@ def linear_programming_problem():
         b = np.append(b, 0)
 
     # print("A:")
-    # printMatrix(A)
+    # print(A)
     # print("b:")
-    # printVector(b)
+    # print(b)
     # print("c:")
-    # printVector(c)
+    # print(c)
 
+    # Uvrstavamo f u sistem
     A = incorporate_f(A, b, c)
+    # I resavamo ga pomocu Furije-Mockin metoda
     eliminate(A, b)
 
 linear_programming_problem()
