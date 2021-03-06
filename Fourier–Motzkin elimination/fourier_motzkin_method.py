@@ -157,7 +157,7 @@ is_point_in(np.array(A), np.array(b), np.array(point))
     i vraca nam novonastali sistem
 '''
 
-def reduce(A, b, val):
+def substitute(A, b, val):
 
     n = len(A) # Broj nejednakosti
     m = len(A[0]) # Broj promenljivih
@@ -274,7 +274,7 @@ def fourier_motzkin_elimination():
 
         val = int(input("Unesite vrednost za zamenu: "))
 
-        A, b = reduce(A, b, val)
+        A, b = substitute(A, b, val)
         print("============================================")
 
 #fourier_motzkin_elimination()
@@ -296,9 +296,16 @@ def linear_programming_problem():
     # n = 2
     # m = 2
 
-    c = [5, 7]
-    A = [[3, 4], [2, 3]]
-    b = [650, 500]
+    # c = [5, 7]
+    # A = [[3, 4], [2, 3]]
+    # b = [650, 500]
+    # n = 2
+    # m = 2
+
+    # Primer iz sveske
+    c = [-1, -1]
+    A = [[-1, 1], [-0.5, -1]]
+    b = [-1, -1]
     n = 2
     m = 2
 
@@ -306,8 +313,8 @@ def linear_programming_problem():
     # a00x1 + a01x2 >= b1
     # a10x1 + a11x2 >= b2
     # a20x1 + a21x2 >= b3
-    A = -np.array(A)
-    b = -np.array(b)
+    #A = -np.array(A)
+    #b = -np.array(b)
 
     # Dodajemo uslove da je svaka od promenljivih >= 0
     # x0 >=0, x1 >= 0, ...
