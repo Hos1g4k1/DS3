@@ -1,4 +1,4 @@
-import  numpy as np
+import numpy as np
 import numpy.linalg as LA
 
 # Funkcija za skalarno mnozenje
@@ -119,14 +119,13 @@ def clean(A, P, Q, c):
 #x0 = [0, 0, 0, 0, 1, 55, 3]
 #P = [4, 5, 6]
 #Q = [0, 1, 2, 3]
-A = [[1, 1, 1, 0], [-1, 3, 0, 1]]
-b = [3, 5]
-c = [-1, -2, 0, 0]
-P = [2, 3]
-Q = [0, 1]
-x0 = [0, 0, 3, 5]
+#A = [[1, 1, 1, 0], [-1, 3, 0, 1]]
+#b = [3, 5]
+#c = [-1, -2, 0, 0]
+#P = [2, 3]
+#Q = [0, 1]
+#x0 = [0, 0, 3, 5]
 
-clean(np.array(A), P, Q, c)
 #clean(np.array(A), P, Q, c)
 '''
     Funkcija koja pronalazi prvi nenegativni clan
@@ -228,26 +227,116 @@ def make_and_solve_system(A, j, P, x0):
     else:
         print(f"t = {right}")
 
-    return right
+    vec = np.zeros(len(x0))
+    #print(vec)
+    #print(len(y))
+    at_p = 0
 
-make_and_solve_system(A, 0, P, x0)
+    print(f"y = {y}")
+    #print(f"P = {P}")
+
+    for i in range(len(vec)):
+        if isIn(i, P):
+            vec[i] = y[at_p]
+            at_p += 1
+        else:
+            vec[i] = 0
+
+    return right, vec
+
+#make_and_solve_system(A, 0, P, x0)
+
+def find_s_and_update(x0, t, y, j, P, Q):
+
+    s = None # indeks koji trazimo
+    y_size = len(y)
+    for i in P:
+
+        if(y[i] <= 0):
+            continue
+
+        val = x0[i] - t*y[i]
+        #print(f"val = {val}")
+
+        if val == 0:
+            s = i
+            break
+
+    if s is None:
+        print("Izgleda da ovo mora da postoji, nmp")
+        return None
+
+    k = None
+
+    # Azuriramo resenje
+
+    for i in range(len(x0)):
+        if (isIn(i, P) and i != s):
+            if i >= y_size:
+                k = 0
+            else:
+                k = y[i]
+            x0[i] = x0[i] - t*k
+        if i == j:
+            x0[i] = t
+        else:
+            x0[i] = 0
+
+    # Azuriramo vektor P
+
+    P_pom = []
+    for p in P:
+        if p != s:
+            P_pom.append(p)
+
+    if not isIn(j, P_pom):
+        P_pom.append(j)
+
+    # Azuriramo vektor Q
+
+    Q_pom = []
+
+    for q in Q:
+        if q != j:
+            Q_pom.append(q)
+
+    if not isIn(s, Q_pom):
+        Q_pom.append(s)
+
+    return x0, P_pom, Q_pom
 
 def revised_simplex():
 
     #A, c, Q, P, x0 = readInput()
 
+    A = [[1, 1, 1, 0], [-1, 3, 0, 1]]
+    b = [3, 5]
+    c = [-1, -2, 0, 0]
+    P = [2, 3]
+    Q = [0, 1]
+    x0 = [0, 0, 3, 5]
+
+    iter = 0
+
     while True:
+
+        print(f"ITERACIJA: {iter}")
+
         # Cistimo f od bazisnih promenljivih
-        c = clean(A, P, c, Q)
+        c = clean(np.array(A), P, Q, c)
         # Nalazimo prvo j tako da je c[j] < 0
         j = find_first_nonpositive(c, Q)
 
         # Ako takvo j ne postoji onda smo nasli optimalno resenje
         if j == None:
+            print(f"Resenje je: {x0}")
             return x0
         # Inace pravimo sistem i odredjujemo najvece t
         else:
             t, y = make_and_solve_system(A, j, P, x0)
 
+        x0, P, Q = find_s_and_update(x0, t, y, j, P, Q)
+        print(f"Trenutno resenje je: {x0}")
+        iter += 1
 
-
+revised_simplex()
