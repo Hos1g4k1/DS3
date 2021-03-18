@@ -29,8 +29,8 @@ def readInput():
     br_promenljivih = int(br_promenljivih)
     br_ogranicenja = int(br_ogranicenja)
 
-    print(f"Broj promenljvih = {br_promenljivih}")
-    print(f"Broj ogranicenja = {br_ogranicenja}")
+    # print(f"Broj promenljvih = {br_promenljivih}")
+    # print(f"Broj ogranicenja = {br_ogranicenja}")
 
     # Ucitavanje vektora koeficijenata funkcije
     c = np.zeros(br_promenljivih)
@@ -221,7 +221,7 @@ def make_and_solve_system(A, j, P, x0, B):
     if left > right:
         print("Ne postoji t => funkcija nije ogranicena odozdo!")
     else:
-        print(f"t = {np.array(right)}")
+        print(f"t = {np.around(right, 13)}")
 
     return right, vec, y
 
@@ -238,7 +238,7 @@ def find_s_and_update(x0, t, y, j, P, Q):
 
     if s is None:
         print("Izgleda da ovo mora da postoji, nmp")
-        return None
+        exit(1) # KABOOM
 
     # Azuriramo resenje
     x0_new = np.zeros(len(x0))
@@ -284,22 +284,6 @@ def set_eta(E, y, ind, P):
 
 def revised_simplex():
 
-    #A, c, Q, P, x0 = readInput()
-
-    #A = [[1, 1, 1, 0], [-1, 3, 0, 1]]
-    #b = [3, 5]
-    #c = [-1, -2, 0, 0]
-    #P = [2, 3]
-    #Q = [0, 1]
-    #x0 = [0, 0, 3, 5]
-
-    #A = [[1, -1, -1, 3, 1, 0, 0], [5, 1, 3, 8, 0, 1, 0], [-1, 2, 3, -5, 0, 0, 1]]
-    #b = [1, 55, 3]
-    #c = [-4, -1, -5, -3, 0, 0, 0]
-    #P = [4, 5, 6]
-    #Q = [0, 1, 2, 3]
-    #x0 = [0, 0, 0, 0, 1, 55, 3]
-
     br_promenljivih, br_ogranicenja, A, c, b, P, Q, x0 = readInput()
 
     system = np.eye(len(P))
@@ -308,9 +292,9 @@ def revised_simplex():
     iter = 0
 
     while True:
-        ##print("Matrica A:")
-        print(A)
+        print("-----------------------------------------")
         print(f"ITERACIJA: {iter}")
+        print("-----------------------------------------")
 
         # Cistimo f od bazisnih promenljivih
         pure_f, system_new = clean(np.array(A), P, Q, c, b, E, system, iter)
@@ -346,7 +330,7 @@ def revised_simplex():
         #print(f"Novo P je: {P}")
         #print(f"Novo Q je: {Q}")
         iter += 1
-        print("______________________________________")
+        print("_________________________________________")
 
     res = 0
     for i in range(br_ogranicenja+1):
