@@ -112,7 +112,7 @@ def updateSystem(A, b, c, F, b_neg_index, pivot):
     Funkcija koja predstavlja dual simpleks metodu za
     resavanje problema linearnog programiranja
 '''
-def dual_simplex():
+def dual_simplex_usingBlend():
 
     # Ucitavanje podataka
     br_promenljivih, br_ogranicenja, A, c, b = readInput()
@@ -183,10 +183,80 @@ def dual_simplex():
 
         iter += 1
 
+#dual_simplex_usingBlend()
+
+def dual_simplex():
+
+    # Ucitavanje podataka
+    br_promenljivih, br_ogranicenja, A, c, b = readInput()
+
+    # Pocetna vrednost resenja
+    F = 0.0
+
+    n = br_promenljivih - len(c)
+    for i in range(n):
+        c.append(0)
+
+    iter = 0
+
+    while True:
+
+        print(f"Iteration {iter}")
+
+        print(f"New A:")
+        print(np.around(A, 7))
+        print("----------------------------------")
+
+        print(f"New b:")
+        print(np.around(b, 7))
+        print("----------------------------------")
+
+        print(f"New c:")
+        print(np.around(c, 7))
+        print("----------------------------------")
+
+        print(f"New F:")
+        print(np.around(F, 7))
+        print("----------------------------------")
+
+        b_neg_index = None
+        n = len(b)
+        # Ispitujemo da li postoji negativno b
+        for i in range(len(b)):
+            if b[n-i-1] < 0:
+                b_neg_index = i
+                break
+
+        # Ukoliko ne postoji to znaci da nemamo dopustivih resenja
+        if b_neg_index == None:
+            print("Resenje je optimalno!")
+            print(f"F = {-np.around(F, 7)}")
+            return
+
+        print(f"b[{b_neg_index}] je negativno")
+
+        A_neg_index = None
+        # Ukoliko ipak postoji
+        # Proveravamo da li su svi koeficijenti u toj vrsti pozitivni
+        for i in range(len(A[0])):
+            if A[b_neg_index][i] < 0:
+                A_neg_index = i
+                print(f"A[{b_neg_index}][{i}] je negativno")
+                break
+        # Ukoliko su svi koeficijenti u toj vrsti pozitivni
+        if A_neg_index == None:
+            print("Ne postoji resenje!")
+            return
+
+        # Ukoliko ipak nisu, trazimo pivot
+        pivot = find_pivot(A, c, b_neg_index)
+        print(f"Pivot: A[{b_neg_index}][{pivot}]")
+        # I azuriramo simpleks tablicu
+        A, b, c, F = updateSystem(A, b, c, F, b_neg_index, pivot)
+
+        iter += 1
+
 dual_simplex()
-
-
-
 
 
 
