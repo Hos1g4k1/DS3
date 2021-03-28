@@ -51,7 +51,7 @@ def readInput():
     #print(A)
 
     # Ucitavanje vektora desne strane sistema ogranicenja
-    b_koefs = lines[br_linija - 4].split(" ")
+    b_koefs = lines[br_linija - 1].split(" ")
     b = []
     for i in range(len(b_koefs)):
         b.append(float(b_koefs[i]))
@@ -76,7 +76,9 @@ def find_pivot(A, c, b_neg_index):
 
     return pivot
 
-
+'''
+    Funkcija za azuriranje simpleks tablice
+'''
 def updateSystem(A, b, c, F, b_neg_index, pivot):
 
     n = len(A[0])
@@ -106,24 +108,21 @@ def updateSystem(A, b, c, F, b_neg_index, pivot):
 
     return A, b, c, F
 
-
+'''
+    Funkcija koja predstavlja dual simpleks metodu za
+    resavanje problema linearnog programiranja
+'''
 def dual_simplex():
 
-    #br_promenljivih, br_ogranicenja, A, c, b = readInput()
+    # Ucitavanje podataka
+    br_promenljivih, br_ogranicenja, A, c, b = readInput()
 
-    br_promenljivih = 3
-    br_ogranicenja = 3
-
-    #c = [7, 4, 1, 0, 0, 0]
-    #A = [[-2, 1, 1, 1, 0, 0], [-1, -2, -1, 0, 1, 0], [1, -1, 2, 0, 0, 1]]
-    #b = [0, -3, -4]
-
-    c = [9, 1, 1, 0, 0]
-    A = [[-3, 1, -2, 1, 0], [-4, -2, 1, 0, 1]]
-    b = [1, -5]
-
+    # Pocetna vrednost resenja
     F = 0.0
-    #c.append(0)
+
+    n = br_promenljivih - len(c)
+    for i in range(n):
+        c.append(0)
 
     iter = 0
 
@@ -161,25 +160,25 @@ def dual_simplex():
             print(f"F = {-np.around(F, 7)}")
             return
 
-        A_neg_index = None
-
         print(f"b[{b_neg_index}] je negativno")
+
+        A_neg_index = None
         # Ukoliko ipak postoji
         # Proveravamo da li su svi koeficijenti u toj vrsti pozitivni
-
         for i in range(len(A[0])):
             if A[b_neg_index][i] < 0:
                 A_neg_index = i
                 print(f"A[{b_neg_index}][{i}] je negativno")
                 break
-
+        # Ukoliko su svi koeficijenti u toj vrsti pozitivni
         if A_neg_index == None:
             print("Ne postoji resenje!")
             return
 
+        # Ukoliko ipak nisu, trazimo pivot
         pivot = find_pivot(A, c, b_neg_index)
         print(f"Pivot: A[{b_neg_index}][{pivot}]")
-
+        # I azuriramo simpleks tablicu
         A, b, c, F = updateSystem(A, b, c, F, b_neg_index, pivot)
 
         iter += 1
