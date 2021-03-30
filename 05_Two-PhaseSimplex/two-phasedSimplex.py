@@ -1,6 +1,8 @@
 import numpy as np
 import numpy.linalg as LA
 
+EPS = 0.00000001
+
 # Funkcija za skalarno mnozenje
 def scalarMul(a, b):
 
@@ -60,28 +62,7 @@ def readInput():
     for i in range(len(b_koefs)):
         b.append(float(b_koefs[i]))
 
-    # Ucitavanje indeksa bazisnih kolona
-    P_koefs = lines[br_linija - 3].split(" ")
-    P = []
-    for i in range(len(P_koefs)):
-        P.append(int(P_koefs[i]))
-    # print(f"P = {P}")
-
-    # Ucitavanje indeksa nebazisnih kolona
-    Q_koefs = lines[br_linija - 2].split(" ")
-    Q = []
-    for i in range(len(Q_koefs)):
-        Q.append(int(Q_koefs[i]))
-    # print(f"Q = {Q}")
-
-    # Ucitavanje pocetnog resenja
-    x0_koefs = lines[br_linija - 1].split(" ")
-    x0 = []
-    for i in range(len(x0_koefs)):
-        x0.append(float(x0_koefs[i]))
-    # print(f"x0 = {x0}")
-
-    return br_promenljivih, br_ogranicenja, A, c, b, P, Q, x0
+    return br_promenljivih, br_ogranicenja, A, c, b
 
 '''
     Funkcija koja izvlaci i-tu kolonu iz matrice A
@@ -290,7 +271,6 @@ def find_s_and_update(x0, t, y, j, P, Q):
 
 def revised_simplex(br_promenljivih, br_ogranicenja, A, c, b, P, Q, x0):
 
-    #br_promenljivih, br_ogranicenja, A, c, b, P, Q, x0 = readInput()
     iter = 0
 
     while True:
@@ -326,9 +306,115 @@ def revised_simplex(br_promenljivih, br_ogranicenja, A, c, b, P, Q, x0):
         res += c[i] * x0[i]
 
     print(f"min = {np.around(res, 13)}")
+    return np.around(res, 13)
+
+def addColumn(A, i):
+
+    for j in range(len(A)):
+        if j == i:
+            A[j].append(1)
+        else:
+            A[j].append(0)
+
+    return A
+
+
+def make_and_solve_help_problem(A, b):
+
+    # Izdvajamo sve kolone koje ulaze u bazu, da bi zakljucili koje
+    # moramo da dodamo
+    cols = []
+    indices = []
+
+    n = len(A[0])
+
+    # Izdvajamo indekse svih kolona koje se sastoje
+    # od svih nula i samo jedne jedinice
+    for i in range(len(A[0])):
+        ones = 0
+        zeros = 0
+        pos = -1
+        for j in range(len(A)):
+            if A[j][i] == 1 or A[j][i] == 1:
+                ones += 1
+                pos = j
+            elif A[j][i] == 0 or A[j][i] == 0:
+                zeros += 1
+
+        print("-----------------------")
+        print(f"ones = {ones}")
+        print(f"zeros = {zeros}")
+        print("-----------------------")
+
+        if ones == 1 and ones + zeros == len(A):
+            cols.append(pos)
+            indices.append(i)
+    for i in range(len(A)):
+        if(not isIn(i, cols)):
+            A = addColumn(A, i)
+
+    n = len(A[0]) - n
+
+    print("Nova matrica A:")
+    print(A)
+    indices = list(set(indices))
+    print(f"indices = {indices}")
+    indices_len = len(indices)
+    P = indices
+
+    # Formiramo vektor bazisnih kolona
+    for i in range(n):
+        P.append(len(A[0])-i-1)
+    P = list(set(P))
+    print(f"Vektor P: {P}")
+
+    added = len(P) - indices_len
+    # Formiramo vektor nebazisnih kolona
+    Q = []
+    for i in range(len(A[0])):
+        if not isIn(i, P):
+            Q.append(i)
+    Q = list(set(Q))
+    print(f"Vektor Q: {Q}")
+
+    # Formiramo pocetno resenje
+    x0 = np.zeros(len(A[0]))
+    x0_len = len(x0)
+    for i in range(len(b)):
+        x0[x0_len - len(b)+i] = b[i]
+    print(f"Pocetno resenje = {x0}")
+
+    print(f"added = {added}")
+    c = np.zeros(len(A[0]))
+    for i in range(added):
+        c[len(c) - i-1] = 1
+    print(f"c = {c}")
+
+    res = revised_simplex(len(A[0]), len(A), A, c, b, P, Q, x0)
+
+    return res
+
+#print(make_and_solve_help_problem(A, b))
 
 def twoPhaseSimplex():
 
-    br_promenljivih, br_ogranicenja, A, c, b, P, Q, x0 = readInput()
+    #br_promenljivih, br_ogranicenja, A, c, b = readInput()
 
-    
+    A = [[1, 0, 0],
+         [0, 1, 1],
+         [0, 0, 1]]
+
+    b = [1, 2, 3]
+
+    # Pretpostavka je da u A nemamo jedinicnu podmatricu maksimalnog ranga
+    # pa je moramo vestackim putem napraviti, zatim resavamo dobijeni sistem
+    # simpleks metodom i ako dobijemo da je minimum razlicit od nule
+    # onda mozemo zakljuciti da polazni problem nema resenje i prekinuti
+    if make_and_solve_help_problem(A, b) != 0:
+        print("Problem nema resenje!")
+        exit(0)
+    # U suprotnom ulazimo u drugu fazu gde eliminisemo vestacke promenljive
+    else:
+        print(A)
+
+twoPhaseSimplex()
