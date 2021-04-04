@@ -132,6 +132,30 @@ def calculate_potentials(matrix, new_matrix):
 
     return potential_a, potential_b
 
+def find_start_tetha(new_matrix, matrix, potential_a, potential_b):
+
+    theta_i = None
+    theta_j = None
+    theta = float('inf')
+
+    n = len(potential_a)
+    m = len(potential_b)
+
+    for i in range(n):
+        for j in range(m):
+            if not math.isnan(new_matrix[i][j]):
+                continue
+
+            p = matrix[i][j] - potential_a[i] - potential_b[j]
+
+            if p < 0:
+                if p < theta:
+                    theta = p
+                    theta_i = i
+                    theta_j = j
+
+    return theta_i, theta_j
+
 def closed_transportation_problem(matrix, a, b):
 
     # Formiranje pocetnog resenja metodom najnizih cena
