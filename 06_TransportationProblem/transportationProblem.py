@@ -1,6 +1,7 @@
 import numpy as np
 import math
 
+
 def readInput():
 
     filePath = input("Unesite putanju do fajla: ")
@@ -19,8 +20,8 @@ def readInput():
         for j in range(broj_kolona):
             matrix[i][j] = float(row[j])
 
-    a = [] # Vektor a_i
-    b = [] # Vektor b_j
+    a = list()  # Vektor a_i
+    b = list()  # Vektor b_j
 
     row = lines[len(lines)-2].split(" ")
     for x in row:
@@ -31,6 +32,165 @@ def readInput():
         b.append(float(x))
 
     return broj_redova, broj_kolona, matrix, a, b
+
+
+def make_graph(n):
+
+    res = []
+    for i in range(n):
+        res.append([])
+
+    return res
+
+
+def add_edge(graph, x, y):
+    graph[x].append(y)
+    return graph
+
+
+def cords_to_index(i, j, m):
+    return i * m + j
+
+
+def index_to_cords(index, m):
+    return index / m, index % m
+
+
+def is_stable_path(path, n, m):
+
+    last_state = None
+    current_state = None
+
+    for i in range(1, len(path)):
+        x1, y1 = index_to_cords(path[i-1], m)
+        x2, y2 = index_to_cords(path[i], m)
+
+        if x1 == x2:
+            current_state = 'row'
+        elif y1 == y2:
+            current_state = 'col'
+        else:
+            return False
+
+        if current_state == last_state:
+            return False
+
+        last_state = current_state
+
+    x1, y1 = index_to_cords(path[len(path)-1], m)
+    x2, y2 = index_to_cords(path[0], m)
+
+    if x1 == x2:
+        current_state = 'row'
+    elif y1 == y2:
+        current_state = 'col'
+    else:
+        return False
+
+    if current_state == last_state:
+        return False
+
+    return True
+
+
+def find_cycle(graph, start_node, t_n, t_m):
+
+    size = len(graph)
+
+    parents = [-1]*size
+    on_stack = [False]*size
+
+    s = list()
+    s.append((start_node, 0))
+    on_stack[start_node] = True
+
+    path = []
+
+    while len(s) > 0:
+
+        node = s[len(s)-1][0]
+        index = s[len(s)-1][1]
+
+        if index == len(graph[node]):
+            s.pop(len(s)-1)
+            on_stack[node] = False
+            parents[node] = -1
+            continue
+
+        s[len(s)-1][1] += 1
+
+        child = graph[node][index]
+
+        if child == start_node and parents[node] != start_node:
+
+            if len(s) % 2 == 0:
+
+                path.append(start_node)
+                n = node
+
+                while n != -1:
+
+                    path.append(n)
+                    n = parents[n]
+
+                if is_stable_path(path, t_n, t_m):
+                    return path
+                else:
+                    path = []
+
+        if not on_stack[child]:
+            s.append((child, 0))
+            parents[child] = node
+            on_stack[child] = True
+
+    return []
+
+
+def form_graph(theta_i, theta_j, matrix, new_matrix):
+
+    n = len(new_matrix)
+    m = len(new_matrix[0])
+
+    theta = float('inf')
+
+    graph = make_graph(n*m)
+
+    for i in range(n):
+
+        for j in range(m):
+
+            if math.isnan(new_matrix[i][j]) and (i != theta_i or j != theta_j):
+                continue
+
+            for k in range(n):
+
+                if i == k:
+                    continue
+
+                if math.isnan(new_matrix[k][i]) and (k != theta_i or j != theta_j):
+                    continue
+
+                graph = add_edge(graph, cords_to_index(i, j, m), cords_to_index(k, j, m))
+
+            for k in range(m):
+
+                if j == k:
+                    continue
+
+                if math.isnan(new_matrix[i][k]) and (i != theta_i or k != theta_j):
+                    continue
+
+                graph = add_edge(graph, cords_to_index(i, j, m), cords_to_index(i, k, m))
+
+    cycle = find_cycle(graph, cords_to_index(theta_i, theta_j, m), n, m)
+
+    for k in range(len(cycle)):
+        if k % 2 == 0:
+            continue
+
+        i, j = index_to_cords(cycle[k], m)
+        theta = min(theta, matrix[i][j])
+
 
 def find_min(matrix, discarded_rows, discarded_cols):
 
