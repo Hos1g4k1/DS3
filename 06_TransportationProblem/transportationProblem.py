@@ -2,6 +2,9 @@ import numpy as np
 import math
 
 
+EPS = 0.000001
+
+
 def readInput():
 
     filePath = input("Unesite putanju do fajla: ")
@@ -53,7 +56,7 @@ def cords_to_index(i, j, m):
 
 
 def index_to_cords(index, m):
-    return index / m, index % m
+    return int(index / m), index % m
 
 
 def is_stable_path(path, n, m):
@@ -66,9 +69,9 @@ def is_stable_path(path, n, m):
         x2, y2 = index_to_cords(path[i], m)
 
         if x1 == x2:
-            current_state = 'row'
+            current_state = 1
         elif y1 == y2:
-            current_state = 'col'
+            current_state = 2
         else:
             return False
 
@@ -81,9 +84,9 @@ def is_stable_path(path, n, m):
     x2, y2 = index_to_cords(path[0], m)
 
     if x1 == x2:
-        current_state = 'row'
+        current_state = 1
     elif y1 == y2:
-        current_state = 'col'
+        current_state = 2
     else:
         return False
 
@@ -96,7 +99,6 @@ def is_stable_path(path, n, m):
 def find_cycle(graph, start_node, t_n, t_m):
 
     size = len(graph)
-
     parents = [-1]*size
     on_stack = [False]*size
 
@@ -105,6 +107,8 @@ def find_cycle(graph, start_node, t_n, t_m):
     on_stack[start_node] = True
 
     path = []
+
+    iter = 0
 
     while len(s) > 0:
 
@@ -117,7 +121,10 @@ def find_cycle(graph, start_node, t_n, t_m):
             parents[node] = -1
             continue
 
-        s[len(s)-1][1] += 1
+        val1 = (s[len(s)-1])[0]
+        val2 = (s[len(s)-1])[1] + 1
+        s.pop()
+        s.append((val1, val2))
 
         child = graph[node][index]
 
@@ -132,7 +139,6 @@ def find_cycle(graph, start_node, t_n, t_m):
 
                     path.append(n)
                     n = parents[n]
-
                 if is_stable_path(path, t_n, t_m):
                     return path
                 else:
@@ -142,6 +148,8 @@ def find_cycle(graph, start_node, t_n, t_m):
             s.append((child, 0))
             parents[child] = node
             on_stack[child] = True
+
+        iter += 1
 
     return []
 
@@ -167,7 +175,7 @@ def form_graph(theta_i, theta_j, matrix, new_matrix):
                 if i == k:
                     continue
 
-                if math.isnan(new_matrix[k][i]) and (k != theta_i or j != theta_j):
+                if math.isnan(new_matrix[k][j]) and (k != theta_i or j != theta_j):
                     continue
 
                 graph = add_edge(graph, cords_to_index(i, j, m), cords_to_index(k, j, m))
@@ -189,7 +197,9 @@ def form_graph(theta_i, theta_j, matrix, new_matrix):
             continue
 
         i, j = index_to_cords(cycle[k], m)
-        theta = min(theta, matrix[i][j])
+        theta = min(theta, new_matrix[i][j])
+
+    return cycle, theta
 
 
 def find_min(matrix, discarded_rows, discarded_cols):
@@ -214,8 +224,8 @@ def find_min(matrix, discarded_rows, discarded_cols):
 
 def calculate_potentials(matrix, new_matrix):
 
-    print(matrix)
-    print(new_matrix)
+    # print(matrix)
+    # print(new_matrix)
 
     potential_a = [0.0] * len(matrix)
     potential_b = [0.0] * len(matrix[0])
@@ -261,14 +271,24 @@ def calculate_potentials(matrix, new_matrix):
         potential_b[index] = 0.0
         calculated_cols.add(index)
 
+    print(f"Rows = {calculated_rows}")
+    print(f"Cols = {calculated_cols}")
+
     s = list()
     s.append((index, row_col))
 
     while len(s) > 0:
 
+        print(potential_a)
+        print(potential_b)
+        print("--------------------------------------------")
+
         index = s[len(s)-1][0]
         is_row = s[len(s)-1][1]
         s.pop()
+
+        print(f"Index: {index}")
+        print(f"Is_row: {is_row}")
 
         if is_row:
             for j in range(len(matrix[0])):
@@ -315,6 +335,68 @@ def find_start_tetha(new_matrix, matrix, potential_a, potential_b):
                     theta_j = j
 
     return theta_i, theta_j
+
+
+def update_system(matrix, new_matrix, cycle, theta, theta_i, theta_j):
+
+    m = len(new_matrix[0])
+    not_removed = True
+
+    for k in range(len(cycle)-1):
+
+        i, j = index_to_cords(cycle[k], m)
+
+        if k % 2 == 0:
+            if math.isnan(new_matrix[i][j]):
+                new_matrix[i][j] = 0
+                new_matrix[i][j] += theta
+            else:
+                new_matrix[i][j] += theta
+        else:
+            if math.isnan(new_matrix[i][j]):
+                new_matrix[i][j] = 0
+                new_matrix[i][j] -= theta
+            else:
+                new_matrix[i][j] -= theta
+
+            if abs(new_matrix[i][j]) < EPS and not_removed:
+                print(f"Postavljam new_matrix[{i}][{j}] na nan")
+                new_matrix[i][j] = math.nan
+                not_removed = False
+
+    new_matrix[theta_i][theta_j] = theta
+
+    return matrix, new_matrix
+
+
+def calculate_solution(matrix, new_matrix, pseudo_rows, pseudo_cols):
+
+    res = 0
+    n = len(new_matrix)
+    m = len(new_matrix[0])
+
+    print("==========================================================")
+    print("==========================================================")
+    print(matrix)
+    print("==========================================================")
+    print("==========================================================")
+    print(new_matrix)
+    print("==========================================================")
+    print("==========================================================")
+
+    for i in range(n):
+        if i in pseudo_rows:
+            print(f"Red {i} je u laznim!")
+            continue
+        for j in range(m):
+            if j in pseudo_cols:
+                print(f"Kolona {j} je u laznim!")
+                continue
+            if not math.isnan(matrix[i][j] * new_matrix[i][j]):
+                res += matrix[i][j] * new_matrix[i][j]
+
+    return res
+
 
 def closed_transportation_problem(matrix, a, b):
 
@@ -375,40 +457,81 @@ def closed_transportation_problem(matrix, a, b):
     a = a_copy
     b = b_copy
 
-    #print(new_matrix)
+    # print(new_matrix)
     # Optimizacija resenja metodom potencijala
 
-    potential_a, potential_b = calculate_potentials(matrix, new_matrix)
+    while True:
 
-    print(f"Potencijali za a: {potential_a}")
-    print(f"Potencijali za b: {potential_b}")
+        print(new_matrix)
+        # print("------------------------------------------------")
+        # print(matrix)
+        potential_a, potential_b = calculate_potentials(matrix, new_matrix)
 
+        print(f"Potencijali za a: {potential_a}")
+        print(f"Potencijali za b: {potential_b}")
 
+        theta_i, theta_j = find_start_tetha(new_matrix, matrix, potential_a, potential_b)
 
-# closed_transportation_problem([[20, 11, 15, 13], [17, 14, 12, 13], [15, 12, 18, 18]], [2, 6, 7], [3, 3, 4, 5])
+        print(f"Theta_i = {theta_i}")
+        print(f"Theta_j = {theta_j}")
+
+        if theta_i is None and theta_j is None:
+            return matrix, new_matrix
+
+        cycle, theta = form_graph(theta_i, theta_j, matrix, new_matrix)
+
+        print(f"cycle = {cycle}")
+        print(f"new_theta = {theta}")
+
+        # Update system
+        matrix, new_matrix = update_system(matrix, new_matrix, cycle, theta, theta_i, theta_j)
+
 
 def transportation_problem():
 
     #broj_redova, broj_kolona, matrix, a, b = readInput()
 
-    broj_redova = 3
+    #broj_redova = 3
+    #broj_kolona = 4
+    #matrix = [[20, 11, 15, 13], [17, 14, 12, 13], [15, 12, 18, 18]]
+    #a = [2, 6, 7]
+    #b = [3, 3, 4, 5]
+
+    # broj_redova = 4
+    # broj_kolona = 5
+    # matrix = [[3, 9, 8, 10, 4], [6, 10, 3, 2, 3], [3, 2, 7, 10, 3], [3, 2, 3, 2, 8]]
+    # a = [28, 13, 19, 32]
+    # b = [24, 16, 10, 20, 22]
+
+    # broj_redova = 3
+    # broj_kolona = 4
+    # matrix = [[5, 4, 8, 3], [4, 7, 4, 5], [5, 3, 6, 1]]
+    # a = [100, 200, 100]
+    # b = [80, 120, 150, 50]
+
+    broj_redova = 6
     broj_kolona = 4
-    matrix = [[20, 11, 15, 13], [17, 14, 12, 13], [15, 12, 18, 18]]
-    a = [2, 6, 7]
-    b = [3, 3, 4, 5]
+    matrix = [[65, 73, 63, 57], [67, 70, 65, 58], [68, 72, 69, 55], [67, 75, 70, 59], [71, 69, 75, 57], [69, 71, 66, 59]]
+    a = [1, 1, 1, 1, 1, 1]
+    b = [1, 1, 1, 1]
 
     sum_a = sum(a)
     sum_b = sum(b)
 
     if sum_a == sum_b:
         print("Problem je zatvorenog tipa!")
-        closed_transportation_problem(matrix, a, b)
+        matrix, new_matrix = closed_transportation_problem(matrix, a, b)
+        res = calculate_solution(matrix, new_matrix, [], [])
+        print(f"Resenje je {res}")
     else:
         print("Problem je otvorenog tipa!")
         print("Prebacujemo ga na problem zatvorenog tipa!")
         # Treba dodati vestacku kolonu
         if sum_a > sum_b:
             new_matrix = np.zeros((broj_redova, broj_kolona + 1))
+
+            pseudo_cols = [len(new_matrix[0])-1]
+            pseudo_rows = []
 
             for i in range(broj_redova):
                 for j in range(broj_kolona + 1):
@@ -423,12 +546,16 @@ def transportation_problem():
             print(a)
             print(b)
 
-            closed_transportation_problem(matrix, a, b)
-            #res = closed_transportation_problem(matrix, a, b)
-            #print(f"Rezultat = {res}")
+            matrix, new_matrix = closed_transportation_problem(new_matrix, a, b)
+            res = calculate_solution(matrix, new_matrix, pseudo_rows, pseudo_cols)
+            print(f"Resenje = {res}")
         # Treba dodati vestacku vrstu
         else:
             new_matrix = np.zeros((broj_redova + 1, broj_kolona))
+
+            pseudo_cols = []
+            pseudo_rows = [len(new_matrix) - 1]
+
             for i in range(broj_redova + 1):
                 for j in range(broj_kolona):
                     if i != broj_redova:
@@ -442,9 +569,9 @@ def transportation_problem():
             print(a)
             print(b)
 
-            closed_transportation_problem(matrix, a, b)
-            # res = closed_transportation_problem(new_matrix, a, b)
-            # print(f"Rezultat = {res}")
+            matrix, new_matrix = closed_transportation_problem(new_matrix, a, b)
+            res = calculate_solution(matrix, new_matrix, pseudo_rows, pseudo_cols)
+            print(f"Resenje = {res}")
 
 
 transportation_problem()
