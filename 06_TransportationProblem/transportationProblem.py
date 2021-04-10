@@ -50,15 +50,15 @@ def add_edge(graph, x, y):
     graph[x].append(y)
     return graph
 
-
+# Vraca indeks u 1D nizu za proseldjene 2D koordinate
 def cords_to_index(i, j, m):
     return i * m + j
 
-
+# Vraca koordinate u matrici za prsledjen indeks u 1D nizu
 def index_to_cords(index, m):
     return int(index / m), index % m
 
-
+# Funkcija koja proverava da li je pronadjeni ciklus validan
 def is_stable_path(path, n, m):
 
     last_state = None
@@ -67,6 +67,11 @@ def is_stable_path(path, n, m):
     for i in range(1, len(path)):
         x1, y1 = index_to_cords(path[i-1], m)
         x2, y2 = index_to_cords(path[i], m)
+
+        # print(f"x1 = {x1}")
+        # print(f"x2 = {x2}")
+        # print(f"y1 = {y1}")
+        # print(f"y2 = {y2}")
 
         if x1 == x2:
             current_state = 1
@@ -190,6 +195,9 @@ def form_graph(theta_i, theta_j, matrix, new_matrix):
 
                 graph = add_edge(graph, cords_to_index(i, j, m), cords_to_index(i, k, m))
 
+    print("Graf: ")
+    print(graph)
+
     cycle = find_cycle(graph, cords_to_index(theta_i, theta_j, m), n, m)
 
     for k in range(len(cycle)):
@@ -271,24 +279,20 @@ def calculate_potentials(matrix, new_matrix):
         potential_b[index] = 0.0
         calculated_cols.add(index)
 
-    print(f"Rows = {calculated_rows}")
-    print(f"Cols = {calculated_cols}")
+    # print(f"Rows = {calculated_rows}")
+    # print(f"Cols = {calculated_cols}")
 
     s = list()
     s.append((index, row_col))
 
     while len(s) > 0:
 
-        print(potential_a)
-        print(potential_b)
-        print("--------------------------------------------")
-
         index = s[len(s)-1][0]
         is_row = s[len(s)-1][1]
         s.pop()
 
-        print(f"Index: {index}")
-        print(f"Is_row: {is_row}")
+        # print(f"Index: {index}")
+        # print(f"Is_row: {is_row}")
 
         if is_row:
             for j in range(len(matrix[0])):
@@ -360,7 +364,6 @@ def update_system(matrix, new_matrix, cycle, theta, theta_i, theta_j):
                 new_matrix[i][j] -= theta
 
             if abs(new_matrix[i][j]) < EPS and not_removed:
-                print(f"Postavljam new_matrix[{i}][{j}] na nan")
                 new_matrix[i][j] = math.nan
                 not_removed = False
 
@@ -375,22 +378,22 @@ def calculate_solution(matrix, new_matrix, pseudo_rows, pseudo_cols):
     n = len(new_matrix)
     m = len(new_matrix[0])
 
-    print("==========================================================")
-    print("==========================================================")
-    print(matrix)
-    print("==========================================================")
-    print("==========================================================")
-    print(new_matrix)
-    print("==========================================================")
-    print("==========================================================")
+    # print("==========================================================")
+    # print("==========================================================")
+    # print(matrix)
+    # print("==========================================================")
+    # print("==========================================================")
+    # print(new_matrix)
+    # print("==========================================================")
+    # print("==========================================================")
 
     for i in range(n):
         if i in pseudo_rows:
-            print(f"Red {i} je u laznim!")
+            # print(f"Red {i} je u laznim!")
             continue
         for j in range(m):
             if j in pseudo_cols:
-                print(f"Kolona {j} je u laznim!")
+                # print(f"Kolona {j} je u laznim!")
                 continue
             if not math.isnan(matrix[i][j] * new_matrix[i][j]):
                 res += matrix[i][j] * new_matrix[i][j]
@@ -486,21 +489,23 @@ def closed_transportation_problem(matrix, a, b):
         # Update system
         matrix, new_matrix = update_system(matrix, new_matrix, cycle, theta, theta_i, theta_j)
 
+        print("===========================================================================")
+        print("===========================================================================")
 
 def transportation_problem():
 
     #broj_redova, broj_kolona, matrix, a, b = readInput()
 
-    #broj_redova = 3
-    #broj_kolona = 4
-    #matrix = [[20, 11, 15, 13], [17, 14, 12, 13], [15, 12, 18, 18]]
-    #a = [2, 6, 7]
-    #b = [3, 3, 4, 5]
+    # broj_redova = 3
+    # broj_kolona = 4
+    # matrix = [[20, 11, 15, 13], [17, 14, 12, 13], [15, 12, 18, 18]]
+    # a = [2, 6, 7]
+    # b = [3, 3, 4, 5]
 
     # broj_redova = 4
     # broj_kolona = 5
     # matrix = [[3, 9, 8, 10, 4], [6, 10, 3, 2, 3], [3, 2, 7, 10, 3], [3, 2, 3, 2, 8]]
-    # a = [28, 13, 19, 32]
+    # a = [28, 13, 19, 18]
     # b = [24, 16, 10, 20, 22]
 
     # broj_redova = 3
@@ -509,11 +514,23 @@ def transportation_problem():
     # a = [100, 200, 100]
     # b = [80, 120, 150, 50]
 
-    broj_redova = 6
-    broj_kolona = 4
-    matrix = [[65, 73, 63, 57], [67, 70, 65, 58], [68, 72, 69, 55], [67, 75, 70, 59], [71, 69, 75, 57], [69, 71, 66, 59]]
-    a = [1, 1, 1, 1, 1, 1]
-    b = [1, 1, 1, 1]
+    # broj_redova = 6
+    # broj_kolona = 6
+    # matrix = [[500, 500, 65, 73, 63, 57], [500, 500, 67, 70, 65, 58], [500, 500, 68, 72, 69, 55], [500, 500, 67, 75, 70, 59], [500, 500, 71, 69, 75, 57], [500, 500, 69, 71, 66, 59]]
+    # a = [1, 1, 1, 1, 1, 1]
+    # b = [1, 1, 1, 1, 1, 1]
+
+    # broj_redova = 3
+    # broj_kolona = 5
+    # matrix = [[2, 3, 3, 2, 2], [2, 1, 2, 2, 4], [4, 3, 1, 2, 2]]
+    # a = [5, 6, 5]
+    # b = [2, 2, 4, 4, 4]
+
+    broj_redova = 3
+    broj_kolona = 3
+    matrix = [[460, 350, 640], [510, 420, 690], [650, 680, 490]]
+    a = [8, 12, 10]
+    b = [9, 7, 11]
 
     sum_a = sum(a)
     sum_b = sum(b)
