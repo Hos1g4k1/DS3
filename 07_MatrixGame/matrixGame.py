@@ -1,8 +1,10 @@
 import numpy as np
+import scipy.optimize
+import scipy.optimize as opt
 
 def read_input():
 
-    filePath = input("Unesite putanju do fajla")
+    filePath = input("Unesite putanju do fajla: ")
     file = open(filePath, "r")
     lines = file.readlines()
 
@@ -16,7 +18,25 @@ def read_input():
         for j in range(m):
             matrix[i][j] = float(line[j])
 
-    return n, m, matrix
+    matrix = matrix.tolist()
+    k = len(matrix[0])
+    for i in range(n):
+        if i < n-k:
+            matrix[i].append(-1)
+            matrix[i].append(1)
+        else:
+            k -= 1
+            matrix[i].append(0)
+            matrix[i].append(0)
+
+    matrix[len(matrix)-1] = [0]*len(matrix[0])
+    matrix[len(matrix)-2] = [0]*len(matrix[0])
+
+    for i in range(m):
+        matrix[len(matrix) - 1][i] = 1
+        matrix[len(matrix) - 2][i] = -1
+
+    return matrix
 
 def extractColumn(matrix, j):
 
@@ -32,6 +52,12 @@ def extractColumn(matrix, j):
                 res.append(matrix[i][k])
 
     return res
+
+
+def FMM(c, A, b):
+    res = scipy.optimize.linprog(c, A, b)
+    return res["fun"], res["x"]
+
 
 def getDomRows(matrix):
 
@@ -139,8 +165,68 @@ def reduce_dimension(matrix):
 
     return matrix
 
-matrix = np.array([[2, 1, 2, 3], [3, 1.5, 1, 2], [2, 2, 1, 1], [1, 1, 1, 1]])
-#matrix = np.array([[1, -1, -1], [-1, -1, 3], [-1, -2, -1]])
-matrix = reduce_dimension(matrix)
-print(matrix)
+# matrix = np.array([[2, 1, 2, 3], [3, 1.5, 1, 2], [2, 2, 1, 1], [1, 1, 1, 1]])
+# #matrix = np.array([[1, -1, -1], [-1, -1, 3], [-1, -2, -1]])
+# matrix = reduce_dimension(matrix)
+# print(matrix)
 
+# A = [[2, 1, 2, 3, -1],
+#      [3, 1.5, 1, 2, -1],
+#      [2, 2, 1, 1, -1],
+#      [1, 1, 1, 1, -1],
+#      [1, 1, 1, 1, 0],
+#      [-1, -1, -1, -1, 0]]
+#
+# b = [0, 0, 0, 0, 1, -1]
+# c = [0, 0, 0, 0, 1]
+
+# num = len(A[0])-1
+
+#
+# A = [[1, -1, -1, 1, -1, 1],
+#      [-1, -1, 3, 1, -1, 1],
+#      [-1, -2, -1, 1, -1, 1],
+#      [1, 1, 1, 1, 0, 0]]
+#
+# num = len(A[0])-3
+#
+# c = [0, 0, 0, 0, 1, -1]
+# b = [0, 0, 0, 1]
+
+A = read_input()
+
+c_min = list()
+n = len(A)
+m = len(A[0])
+for i in range(m):
+    if i == m-1:
+        c_min.append(-1)
+    elif i == m-2:
+        c_min.append(1)
+    else:
+        c_min.append(0)
+
+b_min = list()
+
+for i in range(n):
+    if i == n-2:
+        b_min.append(-1)
+    elif i == n-1:
+        b_min.append(1)
+    else:
+        b_min.append(0)
+
+# print("--------------------------------------")
+# for i in range(n):
+#     print(A[i])
+# print("--------------------------------------")
+# print(b_min)
+# print("--------------------------------------")
+# print(c_min)
+
+f, y = FMM(c_min, A, b_min)
+f = np.round(f, 8)
+y = np.round(y, 8)
+
+print(f"Vrednost igre je {f}")
+print(f"Optimalna tacka je y = {y[:-2]}")

@@ -291,6 +291,7 @@ def find_s_and_update(x0, t, y, j, P, Q):
 def revised_simplex():
 
     br_promenljivih, br_ogranicenja, A, c, b, P, Q, x0 = readInput()
+
     iter = 0
 
     while True:
