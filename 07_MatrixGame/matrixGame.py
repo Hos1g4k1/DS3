@@ -54,11 +54,14 @@ def extractColumn(matrix, j):
     return res
 
 
-def FMM(c, A, b):
+def solve_linear_programming_problem(c, A, b):
     res = scipy.optimize.linprog(c, A, b)
-    return res["fun"], res["x"]
-
-
+    f = np.round(res["fun"], 8)
+    y = np.round(res["x"], 8)
+    return f, y
+'''
+    Funkcija koja izdvaja red koji treba izbaciti
+'''
 def getDomRows(matrix):
 
     n = len(matrix)
@@ -85,7 +88,9 @@ def compareVectors(vec1, vec2):
             return False
 
     return True
-
+'''
+    Funkcija koja izdvaja kolonu koju treba izbaciti
+'''
 def getDomCols(matrix):
 
     m = len(matrix[0])
@@ -104,7 +109,9 @@ def getDomCols(matrix):
                 return i
 
     return None
-
+'''
+    Izbacuje red iz matrice i vraca novonastalu matricu
+'''
 def updateMatrixRows(matrix, row):
 
     n = len(matrix)
@@ -123,6 +130,9 @@ def updateMatrixRows(matrix, row):
 
     return new_matrix
 
+'''
+    Izbacuje kolonu iz matrice i vraca novonastalu matricu
+'''
 def updateMatrixCols(matrix, col):
 
     n = len(matrix)
@@ -141,6 +151,10 @@ def updateMatrixCols(matrix, col):
 
     return new_matrix
 
+'''
+    Vrsi postupak dominacije i vraca matricu
+    minimalnih mogucih dimenzija
+'''
 def reduce_dimension(matrix):
 
     change = True
@@ -165,39 +179,11 @@ def reduce_dimension(matrix):
 
     return matrix
 
-# matrix = np.array([[2, 1, 2, 3], [3, 1.5, 1, 2], [2, 2, 1, 1], [1, 1, 1, 1]])
-# #matrix = np.array([[1, -1, -1], [-1, -1, 3], [-1, -2, -1]])
-# matrix = reduce_dimension(matrix)
-# print(matrix)
-
-# A = [[2, 1, 2, 3, -1],
-#      [3, 1.5, 1, 2, -1],
-#      [2, 2, 1, 1, -1],
-#      [1, 1, 1, 1, -1],
-#      [1, 1, 1, 1, 0],
-#      [-1, -1, -1, -1, 0]]
-#
-# b = [0, 0, 0, 0, 1, -1]
-# c = [0, 0, 0, 0, 1]
-
-# num = len(A[0])-1
-
-#
-# A = [[1, -1, -1, 1, -1, 1],
-#      [-1, -1, 3, 1, -1, 1],
-#      [-1, -2, -1, 1, -1, 1],
-#      [1, 1, 1, 1, 0, 0]]
-#
-# num = len(A[0])-3
-#
-# c = [0, 0, 0, 0, 1, -1]
-# b = [0, 0, 0, 1]
-
 A = read_input()
-
 c_min = list()
 n = len(A)
 m = len(A[0])
+# Formiramo ciljnu funkciju
 for i in range(m):
     if i == m-1:
         c_min.append(-1)
@@ -206,8 +192,8 @@ for i in range(m):
     else:
         c_min.append(0)
 
+# Formiramo vektor desne strane
 b_min = list()
-
 for i in range(n):
     if i == n-2:
         b_min.append(-1)
@@ -216,17 +202,7 @@ for i in range(n):
     else:
         b_min.append(0)
 
-# print("--------------------------------------")
-# for i in range(n):
-#     print(A[i])
-# print("--------------------------------------")
-# print(b_min)
-# print("--------------------------------------")
-# print(c_min)
-
-f, y = FMM(c_min, A, b_min)
-f = np.round(f, 8)
-y = np.round(y, 8)
+f, y = solve_linear_programming_problem(c_min, A, b_min)
 
 print(f"Vrednost igre je {f}")
 print(f"Optimalna tacka je y = {y[:-2]}")
