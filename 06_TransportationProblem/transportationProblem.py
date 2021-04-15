@@ -195,8 +195,8 @@ def form_graph(theta_i, theta_j, matrix, new_matrix):
 
                 graph = add_edge(graph, cords_to_index(i, j, m), cords_to_index(i, k, m))
 
-    print("Graf: ")
-    print(graph)
+    # print("Graf: ")
+    # print(graph)
 
     cycle = find_cycle(graph, cords_to_index(theta_i, theta_j, m), n, m)
 
@@ -475,16 +475,16 @@ def closed_transportation_problem(matrix, a, b):
 
         theta_i, theta_j = find_start_tetha(new_matrix, matrix, potential_a, potential_b)
 
-        print(f"Theta_i = {theta_i}")
-        print(f"Theta_j = {theta_j}")
+        # print(f"Theta_i = {theta_i}")
+        # print(f"Theta_j = {theta_j}")
 
         if theta_i is None and theta_j is None:
             return matrix, new_matrix
 
         cycle, theta = form_graph(theta_i, theta_j, matrix, new_matrix)
 
-        print(f"cycle = {cycle}")
-        print(f"new_theta = {theta}")
+        # print(f"cycle = {cycle}")
+        # print(f"new_theta = {theta}")
 
         # Update system
         matrix, new_matrix = update_system(matrix, new_matrix, cycle, theta, theta_i, theta_j)
@@ -494,7 +494,7 @@ def closed_transportation_problem(matrix, a, b):
 
 def transportation_problem():
 
-    #broj_redova, broj_kolona, matrix, a, b = readInput()
+    broj_redova, broj_kolona, matrix, a, b = readInput()
 
     # broj_redova = 3
     # broj_kolona = 4
@@ -526,11 +526,11 @@ def transportation_problem():
     # a = [5, 6, 5]
     # b = [2, 2, 4, 4, 4]
 
-    broj_redova = 3
-    broj_kolona = 3
-    matrix = [[460, 350, 640], [510, 420, 690], [650, 680, 490]]
-    a = [8, 12, 10]
-    b = [9, 7, 11]
+    # broj_redova = 3
+    # broj_kolona = 3
+    # matrix = [[460, 350, 640], [510, 420, 690], [650, 680, 490]]
+    # a = [8, 12, 10]
+    # b = [9, 7, 11]
 
     sum_a = sum(a)
     sum_b = sum(b)
