@@ -11,7 +11,7 @@ def read_input():
     n, m = lines[0].split(" ")
     n = int(n)
     m = int(m)
-    matrix = np.zeros((n, m))
+    matrix = np.zeros((n+2, m))
 
     for i in range(n):
         line = lines[i+1].split(" ")
@@ -180,6 +180,9 @@ def reduce_dimension(matrix):
     return matrix
 
 A = read_input()
+for x in A:
+    print(x)
+
 c_min = list()
 n = len(A)
 m = len(A[0])
