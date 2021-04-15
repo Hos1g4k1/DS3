@@ -1,6 +1,5 @@
 import numpy as np
 import scipy.optimize
-import scipy.optimize as opt
 
 def read_input():
 
@@ -11,30 +10,12 @@ def read_input():
     n, m = lines[0].split(" ")
     n = int(n)
     m = int(m)
-    matrix = np.zeros((n+2, m))
+    matrix = np.zeros((n, m))
 
     for i in range(n):
         line = lines[i+1].split(" ")
         for j in range(m):
             matrix[i][j] = float(line[j])
-
-    matrix = matrix.tolist()
-    k = len(matrix[0])
-    for i in range(n):
-        if i < n-k:
-            matrix[i].append(-1)
-            matrix[i].append(1)
-        else:
-            k -= 1
-            matrix[i].append(0)
-            matrix[i].append(0)
-
-    matrix[len(matrix)-1] = [0]*len(matrix[0])
-    matrix[len(matrix)-2] = [0]*len(matrix[0])
-
-    for i in range(m):
-        matrix[len(matrix) - 1][i] = 1
-        matrix[len(matrix) - 2][i] = -1
 
     return matrix
 
@@ -179,33 +160,119 @@ def reduce_dimension(matrix):
 
     return matrix
 
-A = read_input()
-for x in A:
-    print(x)
+def form_c_vector(n, m):
 
-c_min = list()
+    c_min = list()
+
+    for i in range(m):
+        if i == m-1:
+            c_min.append(-1)
+        elif i == m-2:
+            c_min.append(1)
+        else:
+            c_min.append(0)
+
+    return c_min
+
+def form_b_vector(n, m):
+    b_min = list()
+    for i in range(n):
+        if i == n - 2:
+            b_min.append(-1)
+        elif i == n - 1:
+            b_min.append(1)
+        else:
+            b_min.append(0)
+
+    return b_min
+
+def add_v1_v2(matrix):
+
+    n = len(matrix)
+
+    for i in range(n):
+        matrix[i].append(-1)
+        matrix[i].append(1)
+
+    return matrix
+
+def add_positive_constraints(matrix):
+
+    n = len(matrix)
+    m = len(matrix[0])
+
+    for i in range(m-2):
+        vec = [0]*(m)
+        vec[i] = -1
+        matrix.append(vec)
+
+    return matrix
+
+def add_sum_1_constraints(matrix):
+    m = len(matrix[0])
+
+    vec1 = [-1]*m
+    vec1[-1] = 0
+    vec1[-2] = 0
+    matrix.append(vec1)
+
+    vec2 = [1]*m
+    vec2[-1] = 0
+    vec2[-2] = 0
+    matrix.append(vec2)
+
+    return matrix
+
+
+A = read_input()
+A = A.tolist()
+B = np.array(A).tolist()
+
+A = add_v1_v2(A)
+
+print(B)
+
+# A = add_positive_constraints(A)
+A = add_sum_1_constraints(A)
+
+print(B)
+
 n = len(A)
 m = len(A[0])
 # Formiramo ciljnu funkciju
-for i in range(m):
-    if i == m-1:
-        c_min.append(-1)
-    elif i == m-2:
-        c_min.append(1)
-    else:
-        c_min.append(0)
-
+c_min = form_c_vector(n, m)
 # Formiramo vektor desne strane
-b_min = list()
-for i in range(n):
-    if i == n-2:
-        b_min.append(-1)
-    elif i == n-1:
-        b_min.append(1)
-    else:
-        b_min.append(0)
+b_min = form_b_vector(n, m)
 
-f, y = solve_linear_programming_problem(c_min, A, b_min)
+# print(f"b = {b_min}")
+# print(f"c = {c_min}")
+# print("A")
+# for x in A:
+    # print(x)
 
-print(f"Vrednost igre je {f}")
+f_min, y = solve_linear_programming_problem(c_min, A, b_min)
+
+print(f"Vrednost igre je {f_min}")
 print(f"Optimalna tacka je y = {y[:-2]}")
+
+B = (np.array(B).T).tolist()
+B = add_v1_v2(B)
+B = add_sum_1_constraints(B)
+for i in range(len(B)):
+    for j in range(len(B[0])):
+        B[i][j] = -1*B[i][j]
+
+b_max = form_b_vector(len(B), len(B[0]))
+c_max = form_c_vector(len(B), len(B[0]))
+for i in range(len(b_max)):
+    b_max[i] = -b_max[i]
+
+for i in range(len(c_max)):
+    c_max[i] = -c_max[i]
+
+# print(f"b = {b_max}")
+# print(f"c = {c_max}")
+
+f_max, x = solve_linear_programming_problem(c_max, B, b_max)
+
+print(f"Optimalna tacka je y = {x[:-2]}")
