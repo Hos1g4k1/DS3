@@ -26,15 +26,17 @@ def readInput():
     a = list()  # Vektor a_i
     b = list()  # Vektor b_j
 
-    row = lines[len(lines)-2].split(" ")
+    row = lines[-3].split(" ")
     for x in row:
         a.append(float(x))
 
-    row = lines[len(lines) - 1].split(" ")
+    row = lines[-2].split(" ")
     for x in row:
         b.append(float(x))
 
-    return broj_redova, broj_kolona, matrix, a, b
+    ansi = lines[-1]
+
+    return broj_redova, broj_kolona, matrix, a, b, ansi
 
 
 def make_graph(n):
@@ -195,8 +197,8 @@ def form_graph(theta_i, theta_j, matrix, new_matrix):
 
                 graph = add_edge(graph, cords_to_index(i, j, m), cords_to_index(i, k, m))
 
-    # print("Graf: ")
-    # print(graph)
+    print("Graf: ")
+    print(graph)
 
     cycle = find_cycle(graph, cords_to_index(theta_i, theta_j, m), n, m)
 
@@ -401,7 +403,60 @@ def calculate_solution(matrix, new_matrix, pseudo_rows, pseudo_cols):
     return res
 
 
-def closed_transportation_problem(matrix, a, b):
+def form_start_solution(new_matrix, matrix,a, b):
+
+    br_redova = len(new_matrix)
+    br_kolona = len(new_matrix[0])
+
+    erased_col = 0
+    erased_row = 0
+
+    discarded_cols = []
+    discarded_rows = []
+
+    pos_i = None
+    pos_j = None
+
+    max_iteration = br_kolona + br_redova - 1
+    iter = 0
+
+    while (iter < max_iteration):
+        pos_i, pos_j, minimum = find_min(matrix, discarded_rows, discarded_cols)
+
+        # print(f"Iter = {iter}")
+        # print(f"Vektor a: {a}")
+        # print(f"Vektor b: {b}")
+        # print()
+        # print()
+        #
+        # print(f"Minumum: {minimum}")
+        # print(f"Pos_i = {pos_i}")
+        # print(f"Pos_j = {pos_j}")
+
+        potential = min(a[pos_i], b[pos_j])
+        new_matrix[pos_i][pos_j] = potential
+
+        erase_col = 0
+        if b[pos_j] == a[pos_i]:
+            if erased_col <= erased_row:
+                erase_col = 1
+
+        if potential == b[pos_j] and potential != a[pos_i] or (potential == b[pos_j] and erase_col):
+            b[pos_j] = 0
+            a[pos_i] -= potential
+            discarded_cols.append(pos_j)
+            erased_col += 1
+        else:
+            a[pos_i] = 0
+            b[pos_j] -= potential
+            discarded_rows.append(pos_i)
+            erased_row += 1
+
+        iter += 1
+
+    return new_matrix
+
+def closed_transportation_problem(matrix, a, b, ansignment):
 
     # Formiranje pocetnog resenja metodom najnizih cena
 
@@ -418,44 +473,7 @@ def closed_transportation_problem(matrix, a, b):
         for j in range(br_kolona):
             new_matrix[i][j] = None
 
-    discarded_cols = []
-    discarded_rows = []
-
-    pos_i = None
-    pos_j = None
-
-    max_iteration = br_kolona + br_redova - 1
-    iter = 0
-
-    while(iter < max_iteration):
-        pos_i, pos_j, minimum = find_min(matrix, discarded_rows, discarded_cols)
-        # print(f"Iter = {iter}")
-        # print(f"Vektor a: {a}")
-        # print(f"Vektor b: {b}")
-        # print()
-        # print()
-        #
-        # print(f"Minumum: {minimum}")
-        # print(f"Pos_i = {pos_i}")
-        # print(f"Pos_j = {pos_j}")
-
-        if a[pos_i] < b[pos_j]:
-            new_matrix[pos_i][pos_j] = a[pos_i] # Dodajemo kapicu
-            x = a[pos_i]
-            a[pos_i] -= x                       # Azuriramo a_i
-            b[pos_j] -= x                       # Azuriramo b_j
-            discarded_rows.append(pos_i)        # Azuriramo nedostupne redove
-        else:
-            new_matrix[pos_i][pos_j] = b[pos_j]
-            x = b[pos_j]
-            a[pos_i] -= x
-            b[pos_j] -= x
-            discarded_cols.append(pos_j)
-
-        # print()
-        # print(new_matrix)
-
-        iter += 1
+    new_matrix = form_start_solution(new_matrix, matrix, a, b)
 
     a = a_copy
     b = b_copy
@@ -475,16 +493,16 @@ def closed_transportation_problem(matrix, a, b):
 
         theta_i, theta_j = find_start_tetha(new_matrix, matrix, potential_a, potential_b)
 
-        # print(f"Theta_i = {theta_i}")
-        # print(f"Theta_j = {theta_j}")
+        print(f"Theta_i = {theta_i}")
+        print(f"Theta_j = {theta_j}")
 
         if theta_i is None and theta_j is None:
             return matrix, new_matrix
 
         cycle, theta = form_graph(theta_i, theta_j, matrix, new_matrix)
 
-        # print(f"cycle = {cycle}")
-        # print(f"new_theta = {theta}")
+        print(f"cycle = {cycle}")
+        print(f"new_theta = {theta}")
 
         # Update system
         matrix, new_matrix = update_system(matrix, new_matrix, cycle, theta, theta_i, theta_j)
@@ -494,7 +512,12 @@ def closed_transportation_problem(matrix, a, b):
 
 def transportation_problem():
 
-    broj_redova, broj_kolona, matrix, a, b = readInput()
+    broj_redova, broj_kolona, matrix, a, b, ansi = readInput()
+
+    ansignment = False
+
+    if ansi == "True":
+        ansignment = True
 
     # broj_redova = 3
     # broj_kolona = 4
@@ -537,58 +560,128 @@ def transportation_problem():
 
     if sum_a == sum_b:
         print("Problem je zatvorenog tipa!")
-        matrix, new_matrix = closed_transportation_problem(matrix, a, b)
+
+        if ansignment:
+            matrix, new_matrix = closed_transportation_problem(matrix, a, b, ansignment)
+        else:
+            matrix, new_matrix = closed_transportation_problem(matrix, a, b, ansignment)
         res = calculate_solution(matrix, new_matrix, [], [])
+        # print(new_matrix)
         print(f"Resenje je {res}")
     else:
         print("Problem je otvorenog tipa!")
+
         print("Prebacujemo ga na problem zatvorenog tipa!")
         # Treba dodati vestacku kolonu
         if sum_a > sum_b:
-            new_matrix = np.zeros((broj_redova, broj_kolona + 1))
 
-            pseudo_cols = [len(new_matrix[0])-1]
-            pseudo_rows = []
+            # U pitanju se assingment problem pa dodajemo vise kolona
+            if ansignment:
+                diff = int(sum_a - sum_b)
+                new_matrix = np.zeros((broj_redova, broj_kolona+diff))
 
-            for i in range(broj_redova):
-                for j in range(broj_kolona + 1):
-                    if j != broj_kolona:
-                        new_matrix[i][j] = matrix[i][j]
-                    else:
-                        new_matrix[i][j] = 1000
+                pseudo_cols = []
+                m = len(new_matrix[0])
+                for i in range(diff):
+                    pseudo_cols.append(m-i-1)
+                pseudo_rows = []
 
-            b.append(sum_a - sum_b)
+                for i in range(broj_redova):
+                    for j in range(broj_kolona + diff):
+                        if j < broj_kolona:
+                            new_matrix[i][j] = matrix[i][j]
+                        else:
+                            new_matrix[i][j] = 1000
 
-            print(new_matrix)
-            print(a)
-            print(b)
+                for i in range(diff):
+                    b.append(1)
 
-            matrix, new_matrix = closed_transportation_problem(new_matrix, a, b)
-            res = calculate_solution(matrix, new_matrix, pseudo_rows, pseudo_cols)
-            print(f"Resenje = {res}")
+                print(new_matrix)
+                print(a)
+                print(b)
+                print(pseudo_cols)
+                matrix, new_matrix = closed_transportation_problem(new_matrix, a, b, ansignment)
+                res = calculate_solution(matrix, new_matrix, pseudo_rows, pseudo_cols)
+                # print(new_matrix)
+                print(f"Resenje = {res}")
+            else:
+                new_matrix = np.zeros((broj_redova, broj_kolona + 1))
+
+                pseudo_cols = [len(new_matrix[0])-1]
+                pseudo_rows = []
+
+                for i in range(broj_redova):
+                    for j in range(broj_kolona + 1):
+                        if j != broj_kolona:
+                            new_matrix[i][j] = matrix[i][j]
+                        else:
+                            new_matrix[i][j] = 1000
+
+                b.append(sum_a - sum_b)
+
+                print(new_matrix)
+                print(a)
+                print(b)
+
+                matrix, new_matrix = closed_transportation_problem(new_matrix, a, b, ansignment)
+                res = calculate_solution(matrix, new_matrix, pseudo_rows, pseudo_cols)
+                # print(new_matrix)
+                print(f"Resenje = {res}")
         # Treba dodati vestacku vrstu
         else:
-            new_matrix = np.zeros((broj_redova + 1, broj_kolona))
 
-            pseudo_cols = []
-            pseudo_rows = [len(new_matrix) - 1]
+            if ansignment:
+                diff = int(sum_b - sum_a)
+                new_matrix = np.zeros((broj_redova + diff, broj_kolona))
 
-            for i in range(broj_redova + 1):
-                for j in range(broj_kolona):
-                    if i != broj_redova:
-                        new_matrix[i][j] = matrix[i][j]
-                    else:
-                        new_matrix[i][j] = 1000
+                pseudo_rows = []
+                n = len(new_matrix)
+                for i in range(diff):
+                    pseudo_rows.append(n - i - 1)
+                pseudo_cols = []
 
-            a.append(sum_b - sum_a)
+                for i in range(broj_redova + diff):
+                    for j in range(broj_kolona):
+                        if i < broj_redova:
+                            new_matrix[i][j] = matrix[i][j]
+                        else:
+                            new_matrix[i][j] = 1000
 
-            print(new_matrix)
-            print(a)
-            print(b)
+                for i in range(diff):
+                    a.append(1)
 
-            matrix, new_matrix = closed_transportation_problem(new_matrix, a, b)
-            res = calculate_solution(matrix, new_matrix, pseudo_rows, pseudo_cols)
-            print(f"Resenje = {res}")
+                print(new_matrix)
+                print(a)
+                print(b)
+                print(pseudo_rows)
+                matrix, new_matrix = closed_transportation_problem(new_matrix, a, b, ansignment)
+                res = calculate_solution(matrix, new_matrix, pseudo_rows, pseudo_cols)
+                # print(new_matrix)
+                print(f"Resenje = {res}")
+
+            else:
+                new_matrix = np.zeros((broj_redova + 1, broj_kolona))
+
+                pseudo_cols = []
+                pseudo_rows = [len(new_matrix) - 1]
+
+                for i in range(broj_redova + 1):
+                    for j in range(broj_kolona):
+                        if i != broj_redova:
+                            new_matrix[i][j] = matrix[i][j]
+                        else:
+                            new_matrix[i][j] = 1000
+
+                a.append(sum_b - sum_a)
+
+                print(new_matrix)
+                print(a)
+                print(b)
+
+                matrix, new_matrix = closed_transportation_problem(new_matrix, a, b, False)
+                res = calculate_solution(matrix, new_matrix, pseudo_rows, pseudo_cols)
+                # print(new_matrix)
+                print(f"Resenje = {res}")
 
 
 transportation_problem()
