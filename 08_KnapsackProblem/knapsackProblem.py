@@ -57,17 +57,20 @@ def knapsack_in_advance(numOfArticles, backpackVolume, volumes, prices):
             else:
                 memo[i][vol] = memo[i - 1][vol]
 
+    # Sada imamo tablicu i vrednost
+    # Potrebno je rekonstruisati resenje
+    vector = reconstruct_result(memo, volumes)
+    result = [0] * numOfArticles
+    for val in vector:
+        result[val] = 1
+    # Ispisujemo rezultat
+    print(f"Maksimalna vrednost predmeta koja staje u ranac je: {memo[numOfArticles][backpackVolume]}")
+    print(f"Ubaceni su predmeti sa sledecim tezinama: {result}")
+
     return memo, memo[numOfArticles][backpackVolume]
 
 
 numOfArticles, backpackVolume, prices, volumes = read_input()
 
+# Ranac unapred
 memo, res = knapsack_in_advance(numOfArticles, backpackVolume, volumes, prices)
-
-vector = reconstruct_result(memo, volumes)
-result = [0]*numOfArticles
-for val in vector:
-    result[val] = 1
-print(f"Maksimalna vrednost predmeta koja staje u ranac je: {res}")
-print(f"Ubaceni su predmeti sa sledecim tezinama: {result}")
-
