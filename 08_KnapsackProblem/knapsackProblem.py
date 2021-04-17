@@ -1,3 +1,5 @@
+import numpy as np
+
 def read_input():
 
     filePath = input("Unesite putanju do fajla: ")
@@ -33,7 +35,7 @@ def reconstruct_result(memo, volumes):
         # Znaci da je on ukljucen u resenje
         if memo[n][m] != memo[n-1][m]:
             # Ukljucujemo ga
-            res.append(volumes[n-1])
+            res.append(n-1)
             # Azuriramo kolonu
             m -= volumes[n-1]
         # Azuriramo vrstu
@@ -44,9 +46,8 @@ def reconstruct_result(memo, volumes):
 
 
 def knapsack_in_advance(numOfArticles, backpackVolume, volumes, prices):
-    memo = [[0 for x in range(backpackVolume + 1)] for x in range(numOfArticles + 1)]
+    memo = np.zeros((numOfArticles+1, backpackVolume+1))
 
-    # Building matrix F[][] from the bottom-up
     for i in range(numOfArticles + 1):
         for vol in range(backpackVolume + 1):
             if i == 0 or vol == 0:
@@ -59,13 +60,14 @@ def knapsack_in_advance(numOfArticles, backpackVolume, volumes, prices):
     return memo, memo[numOfArticles][backpackVolume]
 
 
-numOfArticles = 4
-backpackVolume = 9
-prices = [3, 4, 5, 2]
-volumes = [2, 3, 4, 5]
+numOfArticles, backpackVolume, prices, volumes = read_input()
 
-memo, res = knapsack_in_advance(numOfArticles-1, backpackVolume, volumes, prices)
-print(f"Maksimalna vrednost predmeta koja staje u ranac je: {res}")
+memo, res = knapsack_in_advance(numOfArticles, backpackVolume, volumes, prices)
+
 vector = reconstruct_result(memo, volumes)
-print(f"Ubaceni su predmeti sa sledecim tezinama: {vector}")
+result = [0]*numOfArticles
+for val in vector:
+    result[val] = 1
+print(f"Maksimalna vrednost predmeta koja staje u ranac je: {res}")
+print(f"Ubaceni su predmeti sa sledecim tezinama: {result}")
 
