@@ -1,5 +1,4 @@
 import math
-
 import numpy as np
 
 def read_input():
@@ -23,7 +22,8 @@ def read_input():
 
     return numOfArticles, backpackVolume, prices, volumes
 
-
+# Funkcija koja vrsi rekonstrukciju resenja
+# u slucaju 0-1 ranca
 def reconstruct_result_0_1(memo, volumes):
 
     res = list()
@@ -45,6 +45,7 @@ def reconstruct_result_0_1(memo, volumes):
 
     res.reverse()
     return res
+
 # Vrsi rekonstrukciju resenja za problem ranca
 # u kom mozemo ubacivati vise puta isti predmet
 def reconstruct_result(memo, volumes, prices, numOfArticles, backpackVolume):
@@ -70,6 +71,13 @@ def reconstruct_result(memo, volumes, prices, numOfArticles, backpackVolume):
     return vec
 
 
+def printKnapsackResult(vec, res, method):
+
+    print(f"Metod: {method}")
+    print(f"Optimalno resenje je = {res}")
+    print(f"Optimalna tacka je = {vec}")
+
+
 def maximum(vec):
 
     if len(vec) == 0:
@@ -81,7 +89,8 @@ def maximum(vec):
             maxi = x
     return int(maxi)
 
-# Problem ranca u nazad
+# Problem ranca u nazad pri cemu je dozvoljeno uzimanje
+# istog predmeta 0 ili vise puta
 def UnboundedKnapsack(numOfArticles, backpackVolume, volumes, prices):
 
     memo = [[0 for i in range(backpackVolume + 1)] for i in range(numOfArticles)]
@@ -104,8 +113,8 @@ def UnboundedKnapsack(numOfArticles, backpackVolume, volumes, prices):
     return memo[numOfArticles-1][backpackVolume], memo, vec
 
 
-
-# Problem ranca u napred
+# Problem ranca u napred pri cemu je dozvoljeno uzimanje
+# istog predmeta 0 ili vise puta
 def UnboundedKnapsackInAdvance(numOfArticles, backpackVolume, volumes, prices):
 
     memo = [[0 for i in range(backpackVolume+1)] for i in range(numOfArticles)]
@@ -126,6 +135,7 @@ def UnboundedKnapsackInAdvance(numOfArticles, backpackVolume, volumes, prices):
     vec = reconstruct_result(memo, volumes, prices, numOfArticles, backpackVolume)
 
     return memo[numOfArticles-1][backpackVolume], memo, vec
+
 
 # U ovoj implementaciji moguce je uzeti proizvoljan broj
 # istih elemenata i ubaciti ih u ranac
@@ -172,9 +182,7 @@ def knapsack_0_1(numOfArticles, backpackVolume, volumes, prices):
 
 numOfArticles, backpackVolume, prices, volumes = read_input()
 res, memo, vec = UnboundedKnapsackInAdvance(numOfArticles, backpackVolume, volumes, prices)
-print(f"Optimalno resenje je = {res}")
-print(f"Optimalna tacka je = {vec}")
+printKnapsackResult(vec, res, "U napred")
 print("----------------------------------------------------")
 res, memo, vec = UnboundedKnapsack(numOfArticles, backpackVolume, volumes, prices)
-print(f"Optimalno resenje je = {res}")
-print(f"Optimalna tacka je = {vec}")
+printKnapsackResult(vec, res, "U nazad")
