@@ -1,12 +1,7 @@
 import numpy as np
 
-from bin.classes.class_system import *
 from bin.input import input_vars
-from bin.revised_simplex_with_ETA import revised_simplex_with_ETA
-from bin.canonical_form import canonical_form
 from bin.make_standardized_form import make_standardized_form
-from bin.print_ import *
-from bin.dual_simplex import dual_simplex
 from bin.two_phase_simplex import *
 import copy
 
@@ -48,9 +43,35 @@ def isInteger(vec):
 
 def findFirstNonInt(vec):
 
+    vec = np.round(vec, 8)
+
+    print(f"Vec = {vec}")
+
+    res = list()
     for i in range(len(vec)):
-        if not vec[i].is_integer():
-            return i
+        if vec[i] >= 0:
+            res.append(vec[i] - int(vec[i]))
+        else:
+            res.append(int(abs(vec[i])) + 1 + vec[i])
+
+    print(f"res = {res}")
+
+    ind = -1
+    max = float('-inf')
+    for i in range(len(res)):
+        print(f"res[{i}] = {res[i]}")
+        print(f"Max = {max}")
+        if res[i] > max:
+            max = res[i]
+            ind = i
+
+    print(f"Indeks = {ind}")
+
+    return ind
+
+    # for i in range(len(vec)):
+    #     if not vec[i].is_integer():
+    #         return i
 
 def makeNewConstr(vec, F):
 
@@ -150,7 +171,9 @@ def main():
         finalSol.append(x[i])
 
     print(f"Solution: {np.round(finalSol, 8)}")
-    print(f"Optimal value: {-val}")
-
+    if otype == 'min':
+        print(f"Optimal value: {-val}")
+    else:
+        print(f"Optimal value: {val}")
 if __name__ == '__main__':
    main()

@@ -26,7 +26,7 @@ def two_phase_simplex(Lp, problem="min"):
     # Will program print (pretty) what is currently doing
     print_steps = False
     # Will program print simplex tables
-    print_tables = False
+    print_tables = True
     # Will program print what iteration it is on
     print_iter = False
     # Will program use Bland's rule
