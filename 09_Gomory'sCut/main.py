@@ -28,9 +28,6 @@ def decompose(table):
 
     return A, b, c, F
 
-def isclose(a, b, rel_tol=1e-09, abs_tol=0.0):
-    return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
-
 def isInteger(vec):
 
     vec = np.round(vec, 8)
@@ -41,7 +38,7 @@ def isInteger(vec):
 
     return True
 
-def findFirstNonInt(vec):
+def findNonInt(vec):
 
     vec = np.round(vec, 8)
 
@@ -137,7 +134,7 @@ def main():
 
     while not isInteger(vec):
 
-        ind = findFirstNonInt(vec)
+        ind = findNonInt(vec)
 
         newConstr, F = makeNewConstr(tab[ind], vec[ind])
         newConstr = -newConstr
