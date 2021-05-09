@@ -10,7 +10,7 @@ class Graph:
     # Funkcija koja dodaje granu u graf
     # Kako je graf neusmeren, dodaju se grane u
     # u oba pravca
-    def add_egde(self, u, v):
+    def add_edge(self, u, v):
         self.adjacency_list[u].append(v)
         self.adjacency_list[v].append(u)
 
@@ -18,17 +18,60 @@ class Graph:
         self.degrees[u] += 1
         self.degrees[v] += 1
 
-    # Funkcija koja vrsi pretragu u dubinu
-    def DFS(self, u):
+    def DFS(self, s):
+        # Na pocetku su svi cvorovi neposeceni
+        self.visited = [False for i in range(self.v)]
 
-        self.visited[u] = True
+        stack = []
 
-        lista = self.adjacency_list[u]
+        # Ubacujemo pocetni cvor u stek
+        stack.append(s)
 
-        for x in lista:
+        # Sve dok imamo elemenata na steku
+        while (len(stack)):
+            # Uzimamo onaj sa vrha
+            s = stack[-1]
+            stack.pop()
 
-            if not self.visited[x]:
-                self.DFS(x)
+            # Stack may contain same vertex twice. So
+            # we need to print the popped item only
+            # if it is not visited.
+            if (not self.visited[s]):
+                print(s, end=' ')
+                self.visited[s] = True
+
+            # Get all adjacent vertices of the popped vertex s
+            # If a adjacent has not been visited, then push it
+            # to the stack.
+            for node in self.adjacency_list[s]:
+                if not self.visited[node]:
+                    stack.append(node)
+
+    def BFS(self, s):
+
+        # Na pocetku su svi cvorovi neposeceni
+        self.visited = [False for i in range(self.v)]
+
+        queue = []
+
+        # Obelezavamo pocetni cvor kao posecen
+        # i dodajemo ga u red
+        queue.append(s)
+        self.visited[s] = True
+
+        # Sve dok red nije prazan
+        while queue:
+
+            # Uzimamo cvor sa vrha reda
+            s = queue.pop(0)
+            print(s, end=" ")
+
+            # Dodajemo svakog neposecenog suseda
+            # trenutnog cvora u red
+            for node in self.adjacency_list[s]:
+                if self.visited[node] == False:
+                    queue.append(node)
+                    self.visited[node] = True
 
     # Funkcija koja pronalazi broj cvorova neparnog stepena
     def num_of_odd_vertices(self):
@@ -116,17 +159,28 @@ class Graph:
 
 def main():
 
-    g = Graph(5)
+    # Primer za Ojlerov ciklus
+    # g = Graph(5)
+    #
+    # g.add_edge(0, 1)
+    # g.add_edge(0, 2)
+    # g.add_edge(0, 3)
+    # g.add_edge(1, 2)
+    # g.add_edge(1, 3)
+    # g.add_edge(2, 3)
+    # g.add_edge(2, 4)
+    # g.add_edge(3, 4)
+    #
+    # g.fleury()
 
-    g.add_egde(0, 1)
-    g.add_egde(0, 2)
-    g.add_egde(0, 3)
-    g.add_egde(1, 2)
-    g.add_egde(1, 3)
-    g.add_egde(2, 3)
-    g.add_egde(2, 4)
-    g.add_egde(3, 4)
+    g = Graph(5)  # Total 5 vertices in graph
+    g.add_edge(1, 0)
+    g.add_edge(0, 2)
+    g.add_edge(2, 1)
+    g.add_edge(0, 3)
+    g.add_edge(1, 4)
 
-    g.fleury()
+    # g.DFS(0)
+    g.BFS(0)
 
 main()
