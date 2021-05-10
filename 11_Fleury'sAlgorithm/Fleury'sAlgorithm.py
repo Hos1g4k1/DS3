@@ -33,16 +33,15 @@ class Graph:
             s = stack[-1]
             stack.pop()
 
-            # Stack may contain same vertex twice. So
-            # we need to print the popped item only
-            # if it is not visited.
+            # Ubacujemo samo one cvorove
+            # koje vec nismo posetili
             if (not self.visited[s]):
                 print(s, end=' ')
                 self.visited[s] = True
 
-            # Get all adjacent vertices of the popped vertex s
-            # If a adjacent has not been visited, then push it
-            # to the stack.
+            # Prolazimo kroz sve susede cvora s
+            # i dodajemo u stek one koji nisu
+            # poseceni
             for node in self.adjacency_list[s]:
                 if not self.visited[node]:
                     stack.append(node)
@@ -138,7 +137,6 @@ class Graph:
     def print_euler_path_or_cycle(self, u, end):
 
         for v in self.adjacency_list[u]:
-
             if self.is_valid_edge(u, end, v):
                 print(f"{u} -> {v}")
                 self.remove_edge(u, v)
@@ -150,37 +148,42 @@ class Graph:
         # Provera da li u grafu postoji Ojlervov ciklus
         count_odd = self.num_of_odd_vertices()
         if count_odd == 0:
+            print("Graf ima Ojlerov ciklus!")
             start, end = self.find_node_with_even_degree()
             self.print_euler_path_or_cycle(start, end)
         # Provera da li u grafu postoji Ojlerov put
         elif count_odd == 2:
+            print("Graf ima Ojlerov put!")
             start, end = self.find_node_with_odd_degree()
             self.print_euler_path_or_cycle(start, end)
+        else:
+            print("Graf nema ni Ojlerov ciklus ni Ojlerov put")
+def make_graph():
+
+    path = input("Unesite putanju do fajla: ")
+    file = open(path, "r")
+
+    lines = file.readlines()
+    v = int(lines[0])
+    # Pravimo graf sa v cvorova
+    g = Graph(v)
+
+    for i in range(1, len(lines)):
+        u, v = lines[i].split(" ")
+        u = int(u)
+        v = int(v)
+        # Dodajemo granu neusmerenog grafa u v
+        g.add_edge(u, v)
+
+    file.close()
+    return g
 
 def main():
-
-    # Primer za Ojlerov ciklus
-    # g = Graph(5)
-    #
-    # g.add_edge(0, 1)
-    # g.add_edge(0, 2)
-    # g.add_edge(0, 3)
-    # g.add_edge(1, 2)
-    # g.add_edge(1, 3)
-    # g.add_edge(2, 3)
-    # g.add_edge(2, 4)
-    # g.add_edge(3, 4)
-    #
-    # g.fleury()
-
-    g = Graph(5)  # Total 5 vertices in graph
-    g.add_edge(1, 0)
-    g.add_edge(0, 2)
-    g.add_edge(2, 1)
-    g.add_edge(0, 3)
-    g.add_edge(1, 4)
-
-    # g.DFS(0)
+    g = make_graph()
+    g.DFS(0)
+    print()
     g.BFS(0)
+    print()
+    g.fleury()
 
 main()
