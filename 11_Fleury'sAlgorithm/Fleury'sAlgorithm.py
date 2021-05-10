@@ -2,14 +2,14 @@
 class Graph:
 
     def __init__(self, v):
-        self.v = v                                                          # Broj cvorova
-        self.visited = [False for _ in range(v)]                            # Vektor u kom se pamti da li je cvor posecen
-        self.adjacency_list = [[] for _ in range(v)]                        # Lista povezanosti
-        self.degrees = [0 for _ in range(v)]                                # Vektor u kom se pamte stepeni cvorova
+        self.v = v                                            # Broj cvorova
+        self.visited = [False for _ in range(v)]              # Vektor u kom se pamti da li je cvor posecen
+        self.adjacency_list = [[] for _ in range(v)]          # Lista povezanosti
+        self.degrees = [0 for _ in range(v)]                  # Vektor u kom se pamte stepeni cvorova
 
     # Funkcija koja dodaje granu u graf
     # Kako je graf neusmeren, dodaju se grane u
-    # u oba pravca
+    # u oba smera
     def add_edge(self, u, v):
         self.adjacency_list[u].append(v)
         self.adjacency_list[v].append(u)
@@ -124,22 +124,29 @@ class Graph:
     # Proveravamo da li je grana most
     def is_valid_edge(self, u, end, v):
 
-        # Ukoliko je to jedina grana iz tog cvora
-        # sigurno je most
+        # Ukoliko je preostala samo jedna grana
+        # ona je most i treba je ukloniti
         if len(self.adjacency_list[u]) == 1:
             return True
 
+        # Ukoliko imamo vise grana i ova je bas most
+        # ne uklanjamo nju
         if len(self.adjacency_list[u]) != 1 and v == end:
             return False
 
         return True
-
+    # Funkcija koja implementira Flerijev algoritam
     def print_euler_path_or_cycle(self, u, end):
 
+        # Prolazimo kroz listu suseda cvora u
         for v in self.adjacency_list[u]:
+            # Ukoliko grana od u do v treba da se ubaci
             if self.is_valid_edge(u, end, v):
+                # Ispisujemo je
                 print(f"{u} -> {v}")
+                # Izbacujemo je iz grafa
                 self.remove_edge(u, v)
+                # I rekurzivno nastavljamo dalje
                 self.print_euler_path_or_cycle(v, end)
                 break
 
@@ -158,6 +165,9 @@ class Graph:
             self.print_euler_path_or_cycle(start, end)
         else:
             print("Graf nema ni Ojlerov ciklus ni Ojlerov put")
+
+# Funckija koja pravi graf na osnovu podataka
+# u nekom fajlu
 def make_graph():
 
     path = input("Unesite putanju do fajla: ")
